@@ -1,5 +1,5 @@
-require('dotenv').config()
-
+require('dotenv').config();
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const express = require("express");
 const mysql = require("mysql");
@@ -51,31 +51,52 @@ app.get("/user", async (req, res) => {
     });
 });
 
-app.post("/", async (req, res) => {
-    const data = {
-      fullname: req.body.fullname,
-      email: req.body.email,
-      mobile: req.body.mobile
-    }
+
+
+/* Start of Register path */
+/* Start of Register path */
+
+app.post("/user/register", async (req, res) => {
+    // const data = {
+    //   first_name: req.body.first_name,
+    //   last_name: req.body.last_name,
+    //   email: req.body.email,
+    //   password: req.body.password
+    // }
+
+      first_name = req.body.first_name
+      last_name = req.body.last_name
+      email = req.body.email
+      password = req.body.password
+      hash = "hehehe"      
+
 
     // const testing = "SELECT * FROM users WHERE email = ? OR mobile = ?"
-    const testing = `SELECT * FROM users WHERE email='${req.body.email}' OR mobile='${req.body.mobile}'`
-    const query = "INSERT INTO users (fullname, email, mobile) VALUES (?, ?, ?)";
+    const testing = `SELECT * FROM users WHERE email='${req.body.email}'`
+    // const query = "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
+    const query = `INSERT INTO users (first_name, last_name, email, password, hash) VALUES ('${first_name}', '${last_name}', '${email}', '${password}', '${hash}')`;
+
+
     pool.query(testing, (error, results) => {
       
         if (results[0]){
           res.json({
-              status: "data exists",
-              results: results[0]
+              status: false,
+              message: "Email already registered"
           })
-          return          
+          return   
       }
 
-      pool.query(query, Object.values(data), (error, results) =>{
+
+    //   pool.query(query, Object.values(data), (error, results) =>{
+      pool.query(query, (error, results) =>{
           if (error) {
             res.json({ status: "failure", reason: error.code  });
           } else {
-            res.json({ status: "success", data: data});
+            // res.json({ status: "success", data: data});
+            res.json({
+                success: true
+            })
           }        
       })
       
@@ -83,11 +104,20 @@ app.post("/", async (req, res) => {
 
 });
 
+/* End of Register path */
+/* End of Register path */
+
+
+
+
+//Check if it is connected
 app.get("/", async (req, res) => {
     res.json({ status: "Bark bark! Ready to roll!" });
 });
 
 
+
+//Database details
 const pool = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
@@ -96,6 +126,11 @@ const pool = mysql.createPool({
 });
 
 
+
+
+
+
+//Listening on Port
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`BarkBark Rest API listening on port ${port}`);
