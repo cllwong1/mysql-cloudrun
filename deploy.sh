@@ -1,9 +1,7 @@
 GOOGLE_PROJECT_ID=$(gcloud config list --format='value(core.project)') # YOUR GCP PROJECT ID GOES HERE
 CLOUD_RUN_SERVICE=mysql-cloud-run # NAME OF YOUR CLOUD RUN SERVICE
 INSTANCE_CONNECTION_NAME=micro-harmony-342312:us-central1:mysql-machine # PROJECT:REGION:INSTANCE
-# DB_USER=root # SQL USER 
-# DB_PASS=Password # SQL PASSWORD (DEVELOPMENT ONLY!)
-# DB_NAME=demo-mysql # DATABASE NAME
+
 
 # gcloud services enable compute.googleapis.com sqladmin.googleapis.com run.googleapis.com \
 #   containerregistry.googleapis.com cloudbuild.googleapis.com
