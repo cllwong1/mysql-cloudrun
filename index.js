@@ -80,18 +80,20 @@ app.post("/user/register", async (req, res) => {
       return;
     }
 
-    const first_name = req.body.first_name;
-    const last_name = req.body.last_name;
-    const email = req.body.email;
     const password = await bcrypt.hash(req.body.password, 10);
 
     const token = signToken(
-      { first_name: first_name, last_name: last_name, email: email },
+      {
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        email: req.body.email,
+      },
       "1h"
     );
+
     const rawJWT = jwt.decode(token);
 
-    const query = `INSERT INTO users (first_name, last_name, email, password) VALUES ('${first_name}', '${last_name}', '${email}', '${password}')`;
+    const query = `INSERT INTO users (first_name, last_name, email, password) VALUES ('${req.body.first_name}', '${req.body.last_name}', '${req.body.email}', '${password}')`;
 
     //   pool.query(query, Object.values(data), (error, results) =>{
     pool.query(query, async (error, results) => {
@@ -114,6 +116,50 @@ app.post("/user/register", async (req, res) => {
 
 /* End of Register path */
 /* End of Register path */
+
+/* Start of Login path */
+/* Start of Login path */
+app.post("/user/login", async (req, res) => {
+  const testing = `SELECT * FROM users WHERE email='${req.body.email}'`;
+
+  pool.query(testing, async (error, results) => {
+    if (results[0]) {
+      const authenticated = await bcrypt.compare(
+        req.body.password,
+        results[0].password
+      );
+      if (authenticated) {
+        const token = signToken(
+          {
+            first_name: results[0].first_name,
+            last_name: results[0].last_name,
+            email: results[0].email,
+          },
+          "1h"
+        );
+        const rawJWT = jwt.decode(token);
+        res.status(200).json({
+          success: true,
+          token: token,
+          expiresAt: rawJWT.exp,
+          message: "Log in successful",
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+  });
+});
+/* End of Login path */
+/* End of Login path */
 
 //Check if it is connected
 app.get("/", async (req, res) => {
