@@ -19,6 +19,7 @@ gcloud run deploy $CLOUD_RUN_SERVICE --image gcr.io/$GOOGLE_PROJECT_ID/$CLOUD_RU
   --region=us-central1 \
   --allow-unauthenticated \
   --add-cloudsql-instances $INSTANCE_CONNECTION_NAME \
+  --set-env-vars "JWT_SECRET=the-super-secret"
 #   --set-env-vars INSTANCE_CONNECTION_NAME="${INSTANCE_CONNECTION_NAME}" \
 #   --set-env-vars INSTANCE_UNIX_SOCKET="/cloudsql/${INSTANCE_CONNECTION_NAME}" \
 #   --set-env-vars DB_NAME="${DB_NAME}" \

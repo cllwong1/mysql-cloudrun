@@ -1,5 +1,6 @@
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const cors = require("cors");
 const express = require("express");
 const mysql = require("mysql");
@@ -57,27 +58,27 @@ app.get("/user", async (req, res) => {
 /* Start of Register path */
 
 app.post("/user/register", async (req, res) => {
-    // const data = {
-    //   first_name: req.body.first_name,
-    //   last_name: req.body.last_name,
-    //   email: req.body.email,
-    //   password: req.body.password
-    // }
+    const data = {
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password: req.body.password
+    }
 
-      first_name = req.body.first_name
-      last_name = req.body.last_name
-      email = req.body.email
-      password = req.body.password
-      hash = "hehehe"      
+    //   first_name = req.body.first_name
+    //   last_name = req.body.last_name
+    //   email = req.body.email
+      
+          
 
 
     // const testing = "SELECT * FROM users WHERE email = ? OR mobile = ?"
     const testing = `SELECT * FROM users WHERE email='${req.body.email}'`
     // const query = "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
-    const query = `INSERT INTO users (first_name, last_name, email, password, hash) VALUES ('${first_name}', '${last_name}', '${email}', '${password}', '${hash}')`;
+    
 
 
-    pool.query(testing, (error, results) => {
+    pool.query(testing, async (error, results) => {
       
         if (results[0]){
           res.json({
@@ -87,17 +88,70 @@ app.post("/user/register", async (req, res) => {
           return   
       }
 
+      const first_name = req.body.first_name
+      const last_name = req.body.last_name
+      const email = req.body.email      
+      const password = await bcrypt.hash(req.body.password, 10)
+      const jwt_secret = process.env.JWT_SECRET      
 
+    //   const token = signToken({first_name: first_name, last_name: last_name, email: email}, "1h")
+    //   const rawJWT = jwt.decode(token);
+      
+      const query = `INSERT INTO users (first_name, last_name, email, password) VALUES ('${first_name}', '${last_name}', '${email}', '${password}')`;
+
+    //   const token = jwt.sign(
+    //     {
+    //       first_name: req.body.first_name,
+    //       last_name: req.body.last_name,
+    //       email: req.body.email,
+    //     },
+    //     process.env.JWT_SECRET,
+    //     {
+    //       expiresIn: "1h",
+    //     }
+    //   );            
+    
+    //   const rawJWT = jwt.decode(token);
+      
     //   pool.query(query, Object.values(data), (error, results) =>{
-      pool.query(query, (error, results) =>{
+      pool.query(query, async (error, results) =>{
           if (error) {
             res.json({ status: "failure", reason: error.code  });
-          } else {
-            // res.json({ status: "success", data: data});
-            res.json({
-                success: true
+            return
+          } 
+        //   else {
+        //     // res.json({ status: "success", data: data});
+        //     res.json({
+        //         success: true,
+        //         token: token,
+        //         // expiresAt: rawJWT.exp,
+        //         // message: "Registration Successful",
+        //         data: data
+        //     })
+        //   }
+            pool.query(testing, async (error, results) => {
+                
+                //   const token = jwt.sign(
+                //         {
+                //           id:results[0].user_id
+                //         },
+                //         jwt_secret,
+                //         {
+                //           expiresIn: "1h",
+                //         }
+                //       );            
+                      const token = signToken ({id: results[0].user_id}, "1h")
+                      const rawJWT = jwt.decode(token);
+
+                res.json({
+                    success: true,
+                    token: token,
+                    expiresAt: rawJWT.exp,
+                    message: "Registration Successful",
+                })
+
             })
-          }        
+            
       })
       
     });
@@ -127,6 +181,18 @@ const pool = mysql.createPool({
 
 
 
+// signtoken
+const signToken = (payload, expiresIn) => {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      // algorithm: "RS256",
+      expiresIn,
+    });
+  
+    return token;
+};
+
+const token = signToken ({id: 1}, "1h")
+console.log(token)
 
 
 
@@ -134,4 +200,6 @@ const pool = mysql.createPool({
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`BarkBark Rest API listening on port ${port}`);
+  
 });
+
