@@ -28,13 +28,19 @@ app.use(
 //     next();
 // });
 
-app.get("/user/:id", async (req, res) => {
-  const query = "SELECT * FROM users WHERE id = ?";
-  pool.query(query, [req.params.id], (error, results) => {
-    if (!results[0]) {
-      res.json({ status: "Not found!" });
+app.get("/user/:user_id", async (req, res) => {
+  const query = "SELECT * FROM users WHERE user_id = ?";
+  pool.query(query, [req.params.user_id], (error, results) => {
+    if (results.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Error getting user id",
+      });
     } else {
-      res.json(results[0]);
+      res.status(200).json({
+        success: true,
+        data: results[0],
+      });
     }
   });
 });
@@ -42,11 +48,17 @@ app.get("/user/:id", async (req, res) => {
 app.get("/user", async (req, res) => {
   const query = "SELECT * FROM users";
   pool.query(query, (error, results) => {
-    if (!results[0]) {
+    if (results.length === 0) {
       // if (results="[]") {
-      res.json({ status: "Not found!" });
+      res.status(404).json({
+        success: false,
+        message: "No user found",
+      });
     } else {
-      res.json(results);
+      res.status(200).json({
+        success: true,
+        data: results,
+      });
     }
   });
 });
@@ -55,24 +67,13 @@ app.get("/user", async (req, res) => {
 /* Start of Register path */
 
 app.post("/user/register", async (req, res) => {
-  const data = {
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    email: req.body.email,
-    password: req.body.password,
-  };
-
-  //   first_name = req.body.first_name
-  //   last_name = req.body.last_name
-  //   email = req.body.email
-
   // const testing = "SELECT * FROM users WHERE email = ? OR mobile = ?"
   const testing = `SELECT * FROM users WHERE email='${req.body.email}'`;
   // const query = "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
 
   pool.query(testing, async (error, results) => {
-    if (results[0]) {
-      res.json({
+    if (results.length > 0) {
+      res.status(400).json({
         status: false,
         message: "Email already registered",
       });
@@ -83,62 +84,29 @@ app.post("/user/register", async (req, res) => {
     const last_name = req.body.last_name;
     const email = req.body.email;
     const password = await bcrypt.hash(req.body.password, 10);
-    // const jwt_secret = process.env.JWT_SECRET;
 
-    //   const token = signToken({first_name: first_name, last_name: last_name, email: email}, "1h")
-    //   const rawJWT = jwt.decode(token);
+    const token = signToken(
+      { first_name: first_name, last_name: last_name, email: email },
+      "1h"
+    );
+    const rawJWT = jwt.decode(token);
 
     const query = `INSERT INTO users (first_name, last_name, email, password) VALUES ('${first_name}', '${last_name}', '${email}', '${password}')`;
-
-    //   const token = jwt.sign(
-    //     {
-    //       first_name: req.body.first_name,
-    //       last_name: req.body.last_name,
-    //       email: req.body.email,
-    //     },
-    //     process.env.JWT_SECRET,
-    //     {
-    //       expiresIn: "1h",
-    //     }
-    //   );
-
-    //   const rawJWT = jwt.decode(token);
 
     //   pool.query(query, Object.values(data), (error, results) =>{
     pool.query(query, async (error, results) => {
       if (error) {
-        res.json({ status: "failure", reason: error.code });
+        res.status(500).json({
+          success: false,
+          message: "Error registering user",
+        });
         return;
       }
-      //   else {
-      //     // res.json({ status: "success", data: data});
-      //     res.json({
-      //         success: true,
-      //         token: token,
-      //         // expiresAt: rawJWT.exp,
-      //         // message: "Registration Successful",
-      //         data: data
-      //     })
-      //   }
-      pool.query(testing, async (error, results) => {
-        //   const token = jwt.sign(
-        //         {
-        //           id:results[0].user_id
-        //         },
-        //         jwt_secret,
-        //         {
-        //           expiresIn: "1h",
-        //         }
-        //       );
-        // const token = signToken({ id: results[0].user_id }, "1h");
-        // const rawJWT = jwt.decode(token);
-
-        res.json({
-          success: true,
-          // token: token,
-          // expiresAt: rawJWT.exp,
-          message: "Registration Successful",
-        });
+      res.status(201).json({
+        success: true,
+        token: token,
+        expiresAt: rawJWT.exp,
+        message: "Registration Successful",
       });
     });
   });
@@ -149,7 +117,10 @@ app.post("/user/register", async (req, res) => {
 
 //Check if it is connected
 app.get("/", async (req, res) => {
-  res.json({ status: "Bark bark! Ready to roll!" });
+  res.status(200).json({
+    success: true,
+    message: "Ready to rock",
+  });
 });
 
 //Database details
