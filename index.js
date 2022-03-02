@@ -83,7 +83,7 @@ app.post("/user/register", async (req, res) => {
     const last_name = req.body.last_name;
     const email = req.body.email;
     const password = await bcrypt.hash(req.body.password, 10);
-    const jwt_secret = process.env.JWT_SECRET;
+    // const jwt_secret = process.env.JWT_SECRET;
 
     //   const token = signToken({first_name: first_name, last_name: last_name, email: email}, "1h")
     //   const rawJWT = jwt.decode(token);
@@ -130,13 +130,13 @@ app.post("/user/register", async (req, res) => {
         //           expiresIn: "1h",
         //         }
         //       );
-        const token = signToken({ id: results[0].user_id }, "1h");
-        const rawJWT = jwt.decode(token);
+        // const token = signToken({ id: results[0].user_id }, "1h");
+        // const rawJWT = jwt.decode(token);
 
         res.json({
           success: true,
-          token: token,
-          expiresAt: rawJWT.exp,
+          // token: token,
+          // expiresAt: rawJWT.exp,
           message: "Registration Successful",
         });
       });
@@ -169,9 +169,6 @@ const signToken = (payload, expiresIn) => {
 
   return token;
 };
-
-const token = signToken({ id: 1 }, "1h");
-console.log(token);
 
 //Listening on Port
 const port = process.env.PORT || 8080;
