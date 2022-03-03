@@ -118,6 +118,7 @@ app.post("/user/register", async (req, res) => {
         token: token,
         expiresAt: rawJWT.exp,
         message: "Registration Successful",
+        info: rawJWT,
       });
     });
   });
@@ -152,6 +153,7 @@ app.post("/user/login", async (req, res) => {
           token: token,
           expiresAt: rawJWT.exp,
           message: "Log in successful",
+          info: rawJWT,
         });
       } else {
         res.status(401).json({
