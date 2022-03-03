@@ -28,6 +28,8 @@ app.use(
 //     next();
 // });
 
+/*Start: Get all the user by id */
+
 app.get("/user/:user_id", async (req, res) => {
   const query = "SELECT * FROM users WHERE user_id = ?";
   pool.query(query, [req.params.user_id], (error, results) => {
@@ -45,7 +47,11 @@ app.get("/user/:user_id", async (req, res) => {
   });
 });
 
-app.get("/user", async (req, res) => {
+/* End: Get all the user by id */
+
+/*Start: Get all the user */
+
+app.get("/user", verifyToken, async (req, res) => {
   const query = "SELECT * FROM users";
   pool.query(query, (error, results) => {
     if (results.length === 0) {
@@ -58,10 +64,13 @@ app.get("/user", async (req, res) => {
       res.status(200).json({
         success: true,
         data: results,
+        loggedIn: req.user,
       });
     }
   });
 });
+
+/* End: Get all the user */
 
 /* Start of Register path */
 /* Start of Register path */
@@ -162,6 +171,7 @@ app.post("/user/login", async (req, res) => {
 /* End of Login path */
 
 //Check if it is connected
+
 app.get("/", async (req, res) => {
   res.status(200).json({
     success: true,
@@ -169,7 +179,8 @@ app.get("/", async (req, res) => {
   });
 });
 
-//Database details
+//Start of Database details //
+
 const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -177,7 +188,10 @@ const pool = mysql.createPool({
   socketPath: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`,
 });
 
-// signtoken
+//End of Database details //
+
+// Start of signtoken //
+
 const signToken = (payload, expiresIn) => {
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
     // algorithm: "RS256",
@@ -186,6 +200,24 @@ const signToken = (payload, expiresIn) => {
 
   return token;
 };
+
+// End of signtoken //
+
+// Start of verifyToken //
+
+function verifyToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (token === null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+// End of verifyToken //
 
 //Listening on Port
 const port = process.env.PORT || 8080;
