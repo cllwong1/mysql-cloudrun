@@ -83,7 +83,7 @@ app.post("/user/register", async (req, res) => {
   pool.query(testing, async (error, results) => {
     if (results.length > 0) {
       res.status(400).json({
-        status: false,
+        success: false,
         message: "Email already registered",
       });
       return;
