@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://angular-cloud-run-7teekrs4qq-uc.a.run.app",
+    origin: "https://angular-cloud-run-uc4rkdapoq-uc.a.run.app",
   })
 );
 app.options("*", cors());
